@@ -8,6 +8,7 @@ Steps to run
   2. Frontend
      1. Run the command npm install
      2. Run the command: npm run dev
+  
   Note: Paste the URL you will get on running the above command on a web browser
 
 TechStack
