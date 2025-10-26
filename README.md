@@ -15,5 +15,7 @@ TechStack
   2. FrontEnd: ReactJS
   3. Machine Learning API: Google Gemini LLM, Hugging Face Medical NER (d4data/biomedical-ner-all)
 
-Additional Features
-  1. Secure Storage or Export - PDF
+Enhancements to add
+  1.  Live Audio Streaming
+  2.  Confidence-based Validation for Doctors
+    
