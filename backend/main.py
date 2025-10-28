@@ -22,7 +22,8 @@ model = AutoModelForTokenClassification.from_pretrained("d4data/biomedical-ner-a
 nlp = pipeline("ner", model=model, tokenizer=tokenizer, aggregation_strategy="simple")
 report = ""
 filepath= ""
-
+entities = ""
+new_entities = []
 app = FastAPI()
 # nlp = spacy.load("en_core_web_sm")
 
@@ -63,7 +64,7 @@ def extract_entities(text):
     #
     #
     # return entities
-
+    global entities
     entities = nlp(text)
     #processing the entities that have ## tokens mentioned
     #first find the key for which there is ##, then combine all such keys
@@ -79,7 +80,7 @@ def extract_entities(text):
             if diff_entity == en_grp['entity_group']:
                 full_word += en_grp['word']
 
-    new_entities = []
+    global new_entities
     done = False
     for en_grp in entities:
         if en_grp['entity_group'] == diff_entity:
@@ -94,7 +95,6 @@ def extract_entities(text):
             en_grp['score'] = float(en_grp['score'])
             new_entities.append(en_grp)
 
-    # print(new_entities)
     return new_entities
 
 def generate_report(text, entities):
@@ -131,14 +131,20 @@ async def process_audio(file: UploadFile = File(...)):
     report = generate_report(text, entities)
 
     # Generate the pdf
-    filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
+    # filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
     os.remove(tmp_path)
     # print({"transcription": text, "report": report})
     return {"transcription": text, "report": report}
 
+# There is a bug in this code, since the PDF file gets generated when we summarize the audio, despite after correcting the details we will download the wrong PDF file
+# So we need to always generate the PDF with new data of the entities - work on this tomorrow
+# Another bug is in frontend we are seeing double records, find out why
 @app.get("/download-pdf-report")
 async def generate_pdf_report():
-    global filepath
+    global filepath, report, new_entities
+    # filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
+    filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), new_entities)
+    new_entities = []
     return FileResponse(
         path=filepath,
         filename="Patient_Report.pdf",
@@ -146,8 +152,28 @@ async def generate_pdf_report():
     )
 
 
+@app.get("/get-entities")
+async def get_entities():
+    for en_grp in entities:
+        en_grp['score'] = float(en_grp['score'])
+    return {"entities": entities}
 
+@app.post("/generate-correct-details")
+async def correct_entities(data:dict):
+    global new_entities
+    # {'reviewedEntities': [{'entity_group': 'Medication', 'score': 0.9998646974563599, 'word': 'aspirin', 'start': 114, 'end': 116, 'approved': True}]}
+    reviewed_entities_list = data["reviewedEntities"]
 
+    # Loop through all reviewed entities
+    for reviewed in reviewed_entities_list:
+        for ent in new_entities:
+            # Match based on entity_group (and optionally start index)
+            if ent["entity_group"] == reviewed["entity_group"]:
+                ent["word"] = reviewed["word"]
+                ent["approved"] = reviewed.get("approved", False)
+                break  # move to next reviewed entity
+
+    return {"response": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
