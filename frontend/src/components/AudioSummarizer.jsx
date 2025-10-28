@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "../components/AudioSummarizer.css";
 
 function AudioSummarizer() {
   const [file, setfile] = useState(null);
@@ -6,8 +7,59 @@ function AudioSummarizer() {
   const [error, seterror] = useState(null);
   const [loading, setloading] = useState(false);
   const [showbutton, setshowbutton] = useState(false);
+  const [showSubmitButton, setshowSubmitButton] = useState(false);
 
-  //   functions for handling the file changes
+  // New changes
+  const [reviewedEntities, setReviewedEntities] = useState([]);
+
+  // const handleApprove = (ent, index) => {
+  //   const updated = [...entities];
+  //   // updated[index].approved = true;
+  //   setEntities(updated);
+  // };
+
+  const handleEdit = (ent, index) => {
+    console.log(ent.word);
+    const newWord = prompt("Enter corrected term:");
+    if (newWord) {
+      const updatedEntity = {
+        ...ent,
+        word: newWord,
+        approved: true,
+      };
+      setReviewedEntities((prev) => [...prev, updatedEntity]);
+      const updatedEntities = [...summary.report.Extracted_Entities];
+      updatedEntities[index] = {
+        ...updatedEntities[index],
+        word: newWord,
+      };
+      const updatedSummary = { ...summary };
+      updatedSummary.report.Extracted_Entities = updatedEntities;
+      setsummary(updatedSummary);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/generate-correct-details",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reviewedEntities }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to get the correct details");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failure");
+    }
+  };
+
+  //functions for handling the file changes
   const handleFileChange = (event) => {
     setfile(event.target.files[0]);
     setsummary("");
@@ -71,6 +123,7 @@ function AudioSummarizer() {
 
       setsummary(data.structured_report || data);
       setshowbutton(true);
+      setshowSubmitButton(true);
     } catch (err) {
       seterror(`Failed to summarize: ${err.message}`);
     } finally {
@@ -87,8 +140,8 @@ function AudioSummarizer() {
           transition: "transform 0.6s ease",
         }}
       >
-        <h1 style={styles.title}>Doctor-Patient Audio Summarizer</h1>
-        <p>Upload your lease file (.wav file)</p>
+        <h1 style={styles.title}>MedAI: Doctor–Patient Audio Summarizer</h1>
+        <p style={styles.subTitle}>Upload your lease file (.wav file)</p>
 
         <input
           type="file"
@@ -98,7 +151,7 @@ function AudioSummarizer() {
         <button
           onClick={handleSummarize}
           disabled={loading}
-          style={styles.button}
+          style={styles.specialbutton}
         >
           {loading ? "Summarizing..." : "Get Summary"}
         </button>
@@ -110,7 +163,7 @@ function AudioSummarizer() {
         <div style={styles.resultsSection}>
           {/* Transcription */}
           <div>
-            <h2 style={styles.h2}>Transcription Summary</h2>
+            <h2 style={styles.h2}>Conversation Highlights</h2>
             <p style={styles.h2}>{summary.transcription}</p>
           </div>
 
@@ -121,24 +174,99 @@ function AudioSummarizer() {
 
           {/* Extracted Entities */}
           <div>
-            <h2 style={styles.h2}>Extracted data from the audio</h2>
-            <ul style={{listStyle: "none", padding: 0, margin: 0} }>
+            <h2 style={styles.h2}>Insights Extracted by AI</h2>
+
+            <ul
+              style={{
+                listStyle: "none",
+                paddingLeft: "25px",
+                paddingRight: "25px",
+                margin: 0,
+              }}
+            >
               {summary.report.Extracted_Entities.map((ent, index) => (
-                <li  key={index}>
-                  <span>{ent.entity_group}</span>
-                  <span>({ent.word})</span>
+                <li style={styles.li} key={index}>
+                  <div style={styles.extractedAudio}>
+                    <div>
+                      <span>{ent.entity_group}</span>
+                      <span>: {ent.word}</span>
+                    </div>
+                    {/* <span>{ent.entity_group}</span>
+                    <span>: {ent.word}</span> */}
+                    <button
+                      onClick={() => handleEdit(ent, index)}
+                      style={{
+                        // background: "linear-gradient(135deg, #011209ff, #059669)",
+                        background: "#f4f6f9",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        color: "black",
+                        width: "60px",
+                        maxWidth: "70px",
+                        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
+          <div style={styles.resultsSection2}>
+            {showSubmitButton && (
+              <button style={styles.button2} onClick={handleSubmit}>
+                Submit Details Correction
+              </button>
+            )}
+            {showbutton && (
+              <button style={styles.button2} onClick={handleDownload}>
+                Download PDF
+              </button>
+            )}
+          </div>
         </div>
       )}
-      {showbutton && <button onClick={handleDownload}>Download PDF</button>}
+      {/* <div style={styles.resultsSection2}>
+        {showSubmitButton && (
+          <button style={styles.button} onClick={handleSubmit}>
+            Submit Details Correction
+          </button>
+        )}
+        {showbutton && (
+          <button style={styles.button} onClick={handleDownload}>
+            Download PDF
+          </button>
+        )}
+      </div> */}
     </div>
   );
 }
 
 const styles = {
+  specialbutton: {
+    background: "linear-gradient(135deg, #34d399, #059669)",
+    color: "white",
+    fontSize: "0.9rem",
+    padding: "10px 16px",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    boxShadow: "0 4px 12px rgba(5, 150, 105, 0.2)",
+    // borderBottom: "Black",
+    borderUp: "Black",
+    borderLeft: "Black",
+    borderRight: "Black",
+  },
+  extractedAudio: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: "10px",
+  },
   page: {
     fontFamily: "Arial, sans-serif",
     textAlign: "center",
@@ -146,6 +274,14 @@ const styles = {
     minHeight: "100vh",
     padding: "40px 20px",
     boxSizing: "border-box",
+  },
+
+  fileinput: {
+    padding: "10px",
+    border: "2px dashed #aaa",
+    borderRadius: "8px",
+    backgroundColor: "#f4f4f4ff",
+    cursor: "pointer",
   },
   container: {
     background: "white",
@@ -156,20 +292,26 @@ const styles = {
     margin: "0 auto",
     boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
   },
-  center:{
-    textAlign:"center",
+  center: {
+    textAlign: "center",
+  },
+  subTitle: {
+    marginBottom: "10px",
+    fontWeight: "400",
   },
   title: {
     fontSize: "26px",
     marginBottom: "8px",
   },
-  subtitle: {
-    marginTop: "40px",
-    fontSize: "22px",
-  },
-  h2:{
-    marginTop: "0px",
+
+  // subtitle: {
+  //   marginTop: "40px",
+  //   fontSize: "22px",
+  // },
+  h2: {
+    marginTop: "5px",
     marginBottom: "0px",
+    fontWeight: "400",
   },
   button: {
     background: "linear-gradient(135deg, #34d399, #059669)",
@@ -181,6 +323,19 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.3s ease",
     boxShadow: "0 4px 12px rgba(5, 150, 105, 0.2)",
+  },
+  button2: {
+    background: "linear-gradient(135deg, #34d399, #059669)",
+    color: "white",
+    fontSize: "1rem",
+    padding: "12px 24px",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    boxShadow: "0 4px 12px rgba(5, 150, 105, 0.2)",
+    // width: "100%",
+    // maxWidth: "900px",
   },
   input: {
     background: "linear-gradient(135deg, #34d399, #059669)",
@@ -197,7 +352,6 @@ const styles = {
   resultsSection: {
     marginTop: "50px",
     textAlign: "center",
-
     background: "white",
     borderRadius: "12px",
     padding: "25px 30px",
@@ -205,6 +359,22 @@ const styles = {
     maxWidth: "700px",
     margin: "0 auto",
     boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+  },
+
+  resultsSection2: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-evenly",
+    gap: "10px",
+    marginTop: "25px",
+    textAlign: "center",
+    // background: "white",
+    borderRadius: "12px",
+    padding: "25px 30px",
+    width: "100%",
+    maxWidth: "650px",
+    margin: "0 auto",
+    //boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
   },
   gridContainer: {
     display: "grid",
@@ -235,7 +405,8 @@ const styles = {
     lineHeight: "1.5",
   },
   li: {
-    listStyle: "none",
+    marginBottom: "10px",
+    marginTop: "10px",
   },
 };
 
