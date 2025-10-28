@@ -24,6 +24,7 @@ report = ""
 filepath= ""
 entities = ""
 new_entities = []
+filename = ""
 app = FastAPI()
 # nlp = spacy.load("en_core_web_sm")
 
@@ -118,6 +119,7 @@ async def process_audio(file: UploadFile = File(...)):
     global report, filepath
     # Step 1: Save the uploaded file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        filename = file.filename
         contents = await file.read()
         tmp.write(contents)
         tmp_path = tmp.name
@@ -141,13 +143,13 @@ async def process_audio(file: UploadFile = File(...)):
 # Another bug is in frontend we are seeing double records, find out why
 @app.get("/download-pdf-report")
 async def generate_pdf_report():
-    global filepath, report, new_entities
+    global filepath, report, new_entities, filename
     # filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
     filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), new_entities)
     new_entities = []
     return FileResponse(
         path=filepath,
-        filename="Patient_Report.pdf",
+        filename=filename+".pdf",
         media_type="application/pdf"
     )
 

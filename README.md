@@ -18,5 +18,5 @@ TechStack
 
 Enhancements to add
   1.  Live Audio Streaming
-  2.  Confidence-based Validation for Doctors
+  2.  Validation for doctors before generating the PDF of the patient
     
