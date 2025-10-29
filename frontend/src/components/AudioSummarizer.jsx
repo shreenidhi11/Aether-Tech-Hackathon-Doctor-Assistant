@@ -141,7 +141,7 @@ function AudioSummarizer() {
         }}
       >
         <h1 style={styles.title}>MedAI: Doctor–Patient Audio Summarizer</h1>
-        <p style={styles.subTitle}>Upload your lease file (.wav file)</p>
+        <p style={styles.subTitle}>Upload your audio file (.wav file)</p>
 
         <input
           type="file"
@@ -163,8 +163,8 @@ function AudioSummarizer() {
         <div style={styles.resultsSection}>
           {/* Transcription */}
           <div>
-            <h2 style={styles.h2}>Conversation Highlights</h2>
-            <p style={styles.h2}>{summary.transcription}</p>
+            <h2 style={styles.h2_1}>Conversation Highlights</h2>
+            <p style={styles.h2_2}>{summary.transcription}</p>
           </div>
 
           {/* <div>
@@ -174,7 +174,7 @@ function AudioSummarizer() {
 
           {/* Extracted Entities */}
           <div>
-            <h2 style={styles.h2}>Insights Extracted by AI</h2>
+            <h2 style={styles.h2_3}>Insights Extracted by AI</h2>
 
             <ul
               style={{
@@ -308,10 +308,20 @@ const styles = {
   //   marginTop: "40px",
   //   fontSize: "22px",
   // },
-  h2: {
+  h2_1: {
     marginTop: "5px",
     marginBottom: "0px",
-    fontWeight: "400",
+    fontWeight: "500",
+  },
+  h2_2: {
+    marginTop: "5px",
+    marginBottom: "0px",
+    fontWeight: "300",
+  },
+  h2_3: {
+    marginTop: "5px",
+    marginBottom: "0px",
+    fontWeight: "500",
   },
   button: {
     background: "linear-gradient(135deg, #34d399, #059669)",
