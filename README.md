@@ -1,4 +1,3 @@
-# Aether-Tech-Hackathon-Doctor-Assistant
 Project Description: The main aim of this project is to help doctors to eliminate their manual documentation work related to doctor patient clinic conversations. This project converts the voice to text, the voice being of the doctor and extracts essential medical entities (symptoms, medications, diagnosis, tests). This formatted report (e.g., SOAP format or FHIR JSON) is stored or exported to EHR/PDF.
 
 Steps to run
