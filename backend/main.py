@@ -2,9 +2,7 @@ import os
 import json
 import io
 import tempfile
-
 import spacy
-# import medspacy
 import google.generativeai as genai
 import uvicorn
 from fastapi import FastAPI, UploadFile, File
@@ -26,7 +24,6 @@ entities = ""
 new_entities = []
 filename = ""
 app = FastAPI()
-# nlp = spacy.load("en_core_web_sm")
 
 app.add_middleware(
     CORSMiddleware,
@@ -58,17 +55,8 @@ def extract_entities(text):
     :param text: text to extract entities from
     :return: entities
     '''
-    # doc = nlp(text)
-    # entities = []
-    # for ent in doc.ents:
-    #     entities.append({"text": ent.text, "label": ent.label_})
-    #
-    #
-    # return entities
     global entities
     entities = nlp(text)
-    #processing the entities that have ## tokens mentioned
-    #first find the key for which there is ##, then combine all such keys
     diff_entity = ""
     for en_grp in entities:
         if "##" in en_grp['word']:
@@ -117,7 +105,6 @@ def generate_report(text, entities):
 @app.post("/process-audio")
 async def process_audio(file: UploadFile = File(...)):
     global report, filepath
-    # Step 1: Save the uploaded file temporarily
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         filename = file.filename
         contents = await file.read()
@@ -125,26 +112,16 @@ async def process_audio(file: UploadFile = File(...)):
         tmp_path = tmp.name
     #convert the speech to text
     text = speech_to_text(tmp_path)
-
     #then extract the important words from it
     entities = extract_entities(text)
-
     # Generate the report
     report = generate_report(text, entities)
-
-    # Generate the pdf
-    # filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
     os.remove(tmp_path)
-    # print({"transcription": text, "report": report})
     return {"transcription": text, "report": report}
 
-# There is a bug in this code, since the PDF file gets generated when we summarize the audio, despite after correcting the details we will download the wrong PDF file
-# So we need to always generate the PDF with new data of the entities - work on this tomorrow
-# Another bug is in frontend we are seeing double records, find out why
 @app.get("/download-pdf-report")
 async def generate_pdf_report():
     global filepath, report, new_entities, filename
-    # filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), report.get("Extracted_Entities"))
     filepath = generate_pdf("patient_report.pdf", report.get("Subjective"), new_entities)
     new_entities = []
     return FileResponse(
@@ -163,17 +140,14 @@ async def get_entities():
 @app.post("/generate-correct-details")
 async def correct_entities(data:dict):
     global new_entities
-    # {'reviewedEntities': [{'entity_group': 'Medication', 'score': 0.9998646974563599, 'word': 'aspirin', 'start': 114, 'end': 116, 'approved': True}]}
     reviewed_entities_list = data["reviewedEntities"]
-
     # Loop through all reviewed entities
     for reviewed in reviewed_entities_list:
         for ent in new_entities:
-            # Match based on entity_group (and optionally start index)
             if ent["entity_group"] == reviewed["entity_group"]:
                 ent["word"] = reviewed["word"]
                 ent["approved"] = reviewed.get("approved", False)
-                break  # move to next reviewed entity
+                break
 
     return {"response": "ok"}
 

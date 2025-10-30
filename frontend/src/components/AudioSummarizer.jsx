@@ -12,14 +12,7 @@ function AudioSummarizer() {
   // New changes
   const [reviewedEntities, setReviewedEntities] = useState([]);
 
-  // const handleApprove = (ent, index) => {
-  //   const updated = [...entities];
-  //   // updated[index].approved = true;
-  //   setEntities(updated);
-  // };
-
   const handleEdit = (ent, index) => {
-    console.log(ent.word);
     const newWord = prompt("Enter corrected term:");
     if (newWord) {
       const updatedEntity = {
@@ -94,7 +87,7 @@ function AudioSummarizer() {
     }
   };
 
-  //   we do not pass the file because when we summarize the setfile already points to the file
+  //we do not pass the file because when we summarize the setfile already points to the file
   const handleSummarize = async () => {
     if (!file) {
       seterror("Please upload a file first!");
@@ -167,12 +160,6 @@ function AudioSummarizer() {
             <p style={styles.h2_2}>{summary.transcription}</p>
           </div>
 
-          {/* <div>
-            <h2 style={styles.h2}>Assessment</h2>
-            <p style={styles.h2}>{summary.report.Assessment}</p>
-          </div> */}
-
-          {/* Extracted Entities */}
           <div>
             <h2 style={styles.h2_3}>Insights Extracted by AI</h2>
 
@@ -191,8 +178,6 @@ function AudioSummarizer() {
                       <span>{ent.entity_group}</span>
                       <span>: {ent.word}</span>
                     </div>
-                    {/* <span>{ent.entity_group}</span>
-                    <span>: {ent.word}</span> */}
                     <button
                       onClick={() => handleEdit(ent, index)}
                       style={{
@@ -229,18 +214,6 @@ function AudioSummarizer() {
           </div>
         </div>
       )}
-      {/* <div style={styles.resultsSection2}>
-        {showSubmitButton && (
-          <button style={styles.button} onClick={handleSubmit}>
-            Submit Details Correction
-          </button>
-        )}
-        {showbutton && (
-          <button style={styles.button} onClick={handleDownload}>
-            Download PDF
-          </button>
-        )}
-      </div> */}
     </div>
   );
 }
@@ -256,7 +229,6 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.3s ease",
     boxShadow: "0 4px 12px rgba(5, 150, 105, 0.2)",
-    // borderBottom: "Black",
     borderUp: "Black",
     borderLeft: "Black",
     borderRight: "Black",
@@ -304,10 +276,6 @@ const styles = {
     marginBottom: "8px",
   },
 
-  // subtitle: {
-  //   marginTop: "40px",
-  //   fontSize: "22px",
-  // },
   h2_1: {
     marginTop: "5px",
     marginBottom: "0px",
@@ -344,8 +312,6 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.3s ease",
     boxShadow: "0 4px 12px rgba(5, 150, 105, 0.2)",
-    // width: "100%",
-    // maxWidth: "900px",
   },
   input: {
     background: "linear-gradient(135deg, #34d399, #059669)",
@@ -378,13 +344,11 @@ const styles = {
     gap: "10px",
     marginTop: "25px",
     textAlign: "center",
-    // background: "white",
     borderRadius: "12px",
     padding: "25px 30px",
     width: "100%",
     maxWidth: "650px",
     margin: "0 auto",
-    //boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
   },
   gridContainer: {
     display: "grid",
